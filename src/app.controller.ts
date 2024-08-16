@@ -1,13 +1,19 @@
-import { Controller, Get, Post, Put, Delete, Render } from '@nestjs/common';
+import { Controller, Post, UseGuards, Request, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ConfigService } from '@nestjs/config';
+import { LocalAuthGuard } from './auth/local-auth.guard';
 
+import { AuthService } from './auth/auth.service';
+// import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { Public } from './decorator/customize';
 
 @Controller()
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private authService: AuthService
+
 
   ) { }
 
@@ -16,23 +22,32 @@ export class AppController {
   // getHello(): string {
   //   return this.appService.getHello();
   // }
+  @Public()
+  @UseGuards(LocalAuthGuard)
+  @Post('/login')
+  handleLogin(@Request() req) {
+    // return req.user;
+    return this.authService.login(req.user);
 
-  @Get() /// route " "  /=> api (restful)
-  @Render('home')
-  handleHomePage() {
-    //port from .env
-    console.log(">> check port = ", this.configService.get<string>("PORT"))
-    const message1 = this.appService.getHello();
+  }
 
-    return {
-      message: message1
-    }
+  // @UseGuards(JwtAuthGuard)
+  @Public()
+  @Get('profile')
+  getProfile(@Request() req) {
+    return req.user;
+  }
+
+  // @UseGuards(JwtAuthGuard)
+  @Get('profile1')
+  getProfile1(@Request() req) {
+    return req.user;
   }
 
 
-  @Get("abc") /// route " "  /
-  getHello1(): string {
-    return "this.appService.getHello() abc";
-  }
+  // @Get("abc") /// route " "  /
+  // getHello1(): string {
+  //   return "this.appService.getHello() abc";
+  // }
 
 }
